@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  name               String
+  surname            String
+  email              String               @unique
+  password           String
+  avatar             String?            
+  verification_code  String?      
+  created_at         DateTime             @default(now())
+  AnamnesisForm      AnamnesisForm[]
+  refresh_token      RefreshToken[]
+  CompletedExercises CompletedExercises[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String @id @default(uuid())
+  expiresIn Int
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@map("refresh_token")
+}
+
+model AnamnesisForm {
+  id                String   @id @default(uuid())
+  gender            String?
+  age               Int?
+  weight            Float?
+  height            Float?
+  profession        String?
+  sittingOrStanding String?
+  jointProblems     String?
+  healthProblems    String?
+  napeNeck          Int?
+  upperBack         Int?
+  lowerBack         Int?
+  legs              Int?
+  knees             Int?
+  feetAndAnkles     Int?
+  created_at        DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+
+  @@map("anamnesis_form")
+}
+
+model Exercises {
+  id            String          @id @default(uuid())
+  name          String
+  type          String
+  time          Int
+  level         Int
+  demonstration String
+  created_at    DateTime        @default(now())
+  NameExercises NameExercises[]
+
+  CompletedExercises   CompletedExercises @relation(fields: [CompletedExercisesId], references: [id])
+  CompletedExercisesId String
+
+  @@map("exercises")
+}
+
+model NameExercises {
+  id          String    @id @default(uuid())
+  name        String
+  Exercises   Exercises @relation(fields: [ExercisesId], references: [id])
+  ExercisesId String
+
+  @@map("NameExercises")
+}
+
+model CompletedExercises {
+  id         String      @id @default(uuid())
+  exercise   String
+  status     String
+  level      Int
+  time       Int
+  created_at DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String
+  Exercises  Exercises[]
+
+  @@map("completed_exercises")
+}
